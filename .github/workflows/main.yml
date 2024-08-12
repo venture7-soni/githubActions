@@ -1,0 +1,40 @@
+name: Auto Cherry-Pick
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  cherry-pick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "venture7-soni"
+          git config --global user.email "vishal.soni@venture7.com"
+
+      - name: Log Pull Request Details
+        run: |
+          echo "PR Commit SHA: ${{ github.event.pull_request.head.sha }}"
+          echo "PR Base Branch: ${{ github.event.pull_request.base.ref }}"
+          echo "PR Head Branch: ${{ github.event.pull_request.head.ref }}"
+
+      - name: Fetch and Checkout Test Branch
+        run: |
+          git fetch origin
+          git checkout -b test origin/test || git checkout test
+          git reset --hard origin/test
+
+      - name: Cherry-pick the changes
+        run: |
+          git cherry-pick ${{ github.event.pull_request.head.sha }} || git cherry-pick --abort
+
+      - name: Push the changes
+        run: |
+          git push https://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@github.com/venture7-soni/githubActions.git test
